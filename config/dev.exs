@@ -22,7 +22,12 @@ config :home_web, HomeWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "JvPzXcXesoMQuV52QFvw5/k8Z/mem+LPIWKhDj96e//2hAzpPA2LKkIb1dPP9+rA",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:home_web, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:home_web, ~w(--sourcemap=inline --watch)]},
+    sass: {
+      DartSass,
+      :install_and_run,
+      [:default, ~w(--embed-source-map --source-map-urls=absolute --watch)]
+    }
   ]
 
 # ## SSL Support

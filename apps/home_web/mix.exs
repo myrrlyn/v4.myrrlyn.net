@@ -49,7 +49,8 @@ defmodule HomeWeb.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:home, in_umbrella: true},
       {:jason, "~> 1.2"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:dart_sass, "~> 0.7", only: :dev}
     ]
   end
 
@@ -64,6 +65,7 @@ defmodule HomeWeb.MixProject do
       "assets.build": ["esbuild home_web"],
       "assets.deploy": [
         "esbuild home_web --minify",
+        "sass default --no-source-map --style=compressed",
         "phx.digest"
       ]
     ]

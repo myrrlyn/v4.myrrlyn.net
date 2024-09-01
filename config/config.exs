@@ -28,6 +28,13 @@ config :home_web, HomeWeb.Endpoint,
   pubsub_server: Home.PubSub,
   live_view: [signing_salt: "5SDHJsZf"]
 
+config :dart_sass,
+  version: "1.77.8",
+  default: [
+    args: ~w(-Inode_modules sass/:../priv/static/assets/),
+    cd: Path.expand("../apps/home_web/assets", __DIR__)
+  ]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
