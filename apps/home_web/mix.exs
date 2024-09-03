@@ -50,7 +50,7 @@ defmodule HomeWeb.MixProject do
       {:home, in_umbrella: true},
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
-      {:dart_sass, "~> 0.7", only: :dev}
+      {:dart_sass, "~> 0.7", runtime: Mix.env() == :dev}
     ]
   end
 

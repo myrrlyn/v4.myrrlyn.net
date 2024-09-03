@@ -13,6 +13,9 @@ import Config
 config :home,
   ecto_repos: [Home.Repo]
 
+config :home, Home.Page,
+  page_root: Path.join([File.cwd!(), "apps", "home", "priv", "pages"])
+
 config :home_web,
   ecto_repos: [Home.Repo],
   generators: [context_app: :home]

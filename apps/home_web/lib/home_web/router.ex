@@ -18,6 +18,7 @@ defmodule HomeWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/*path", PageController, :show_page
   end
 
   # Other scopes may use custom stacks.

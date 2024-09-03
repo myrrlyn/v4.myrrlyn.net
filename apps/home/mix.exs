@@ -36,11 +36,18 @@ defmodule Home.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:wyz, in_umbrella: true},
       {:dns_cluster, "~> 0.1.1"},
       {:phoenix_pubsub, "~> 2.1"},
       {:ecto_sql, "~> 3.10"},
       {:ecto_sqlite3, ">= 0.0.0"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:earmark, "~> 1.4"},
+      {:earmark_parser, "~> 1.4"},
+      {:ok, "~> 2.3"},
+      {:yaml_elixir, "~> 2.11"},
+      {:timex, "~> 3.7"},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
     ]
   end
 
