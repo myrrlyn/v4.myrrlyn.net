@@ -22,7 +22,7 @@ defmodule HomeWeb.PageController do
     with {:ok, path} <- path,
     {:ok, page} <- Home.Page.load_page(path),
     {:ok, page} <- Home.Page.show(page) do
-      conn |> render(:page, page: page)
+      conn |> put_flash(:error, "this site is under construction") |> render(:page, page: page)
     else
       {:error, error} ->
         conn

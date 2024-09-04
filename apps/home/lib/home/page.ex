@@ -1,4 +1,5 @@
 defmodule Home.Page do
+  require Logger
   require OK
   use OK.Pipe
 
@@ -9,7 +10,7 @@ defmodule Home.Page do
   defstruct orig: nil, html: nil
 
   @doc """
-  Loads a page out of `priv/pages/`. Can only be used on
+  Loads a page out of the page-root. Can only be used on
   Markdown-with-frontmatter files.
   """
   @spec load_page(Path.t()) :: {:ok, Wyz.Document.t()} | {:error, any()}
@@ -17,20 +18,31 @@ defmodule Home.Page do
     path
     |> make_page_path()
     |> Wyz.Document.load()
-    ~>> Home.Page.Metadata.update_document()
-    # TODO(myrrlyn): Wrap in local structure
+    ~>> from_document()
   end
 
   @doc """
   Renders a loaded document into HTML.
   """
-  def show(%Wyz.Document{text: {_head, body}} = this) do
-    case EarmarkParser.as_ast(body) do
-      {status, ast, messages} -> {status, {ast, messages}}
+  def show(%__MODULE__{orig: %Wyz.Document{text: {_head, body}}} = this) do
+    OK.for do
+      {status, ast, messages} = EarmarkParser.as_ast(body)
+      {ast, messages} <- {status, {ast, messages}}
+      html = Earmark.Transform.transform(ast)
+    after
+      for message <- messages do
+        Logger.warning("Earmark parse message: #{message}")
+      end
+      %__MODULE__{this | html: html}
     end
-    ~>> (fn {ast, _messages} ->
-           {:ok, %__MODULE__{orig: this, html: Earmark.Transform.transform(ast)}}
-         end).()
+  end
+
+  defp from_document(%Wyz.Document{} = doc) do
+    OK.for do
+      orig <- doc |> __MODULE__.Metadata.update_document()
+    after
+      %__MODULE__{orig: orig}
+    end
   end
 
   defp make_page_path(path) when is_binary(path) do

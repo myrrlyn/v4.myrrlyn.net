@@ -40,7 +40,7 @@ defmodule HomeWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: HomeWeb.Layouts]
+        layouts: [html: {HomeWeb.Layouts, :site}]
 
       import Plug.Conn
 
@@ -51,7 +51,7 @@ defmodule HomeWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {HomeWeb.Layouts, :app}
+        layout: {HomeWeb.Layouts, :site}
 
       unquote(html_helpers())
     end
