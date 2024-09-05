@@ -1,1 +1,6 @@
+<article>
+<h1 class="title"><%= @page.orig.meta.title %></h1>
+<p :if={@page.orig.meta.summary}><%= @page.orig.meta.summary %></p>
 <%= @page.html |> raw() %>
+</article>
+<div class="debug-grid"></div>

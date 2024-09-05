@@ -34,7 +34,7 @@ config :home_web, HomeWeb.Endpoint,
 config :dart_sass,
   version: "1.77.8",
   default: [
-    args: ~w(-Inode_modules sass/:../priv/static/assets/),
+    args: ~w(-Inode_modules sass/:../priv/static/css/),
     cd: Path.expand("../apps/home_web/assets", __DIR__)
   ]
 
@@ -43,7 +43,7 @@ config :esbuild,
   version: "0.17.11",
   home_web: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/js --external:/fonts/* --external:/images/*),
     cd: Path.expand("../apps/home_web/assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
