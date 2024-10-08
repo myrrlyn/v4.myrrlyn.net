@@ -37,8 +37,8 @@ defmodule HomeWeb.Router do
     scope "/blog", HomeWeb do
       pipe_through :browser
 
-      get "/:category/:article/:resource", BlogController, :load
-      get "/:category/:article", BlogController, :load
+      get "/:category/:article/:resource", PageController, :show_blog
+      get "/:category/:article", PageController, :show_blog
     end
 
     scope "/", HomeWeb do

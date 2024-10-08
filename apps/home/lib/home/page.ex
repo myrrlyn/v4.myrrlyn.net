@@ -55,7 +55,7 @@ defmodule Home.Page do
   Pages loaded from HTML files are already shown; Pages loaded from Markdown
   files are run through the Markdown processor to produce an HTML string.
   """
-  @spec show(__MODULE__.t()) :: {:ok, __MODULE__.t()} | {:error, term()}
+  @spec show(__MODULE__.t() | {:file, Path.t()}) :: {:ok, __MODULE__.t()} | {:error, term()}
   def show(this)
   def show(%__MODULE__{orig: %Wyz.File{}} = this), do: {:ok, this}
 
@@ -67,6 +67,8 @@ defmodule Home.Page do
     end
   end
 
+  def show({:file, path}), do: {:ok, {:file, path}}
+
   @doc """
   Attempts to discover the page title. This is always known from Markdown
   documents, and is either the `<title>` or first `<h1>` element in HTML
@@ -74,7 +76,9 @@ defmodule Home.Page do
   """
   @spec get_title(__MODULE__.t()) :: {:ok, String.t()} | {:error, :no_title}
   def get_title(page)
-  def get_title(%__MODULE__{orig: %Wyz.Document{}, info: info}), do: {:ok, info.title}
+
+  def get_title(%__MODULE__{orig: %Wyz.Document{}, info: info}),
+    do: {:ok, info.page_title || info.title}
 
   def get_title(%__MODULE__{orig: %Wyz.File{}, html: html}) do
     OK.for do
@@ -112,13 +116,16 @@ defmodule Home.Page do
           {:markdown, Path.join(full_path, "index.md")},
           {:markdown, Path.join(full_path, "README.md")}
         ]
+
+      asset ->
+        [{:asset, full_path}]
     end
   end
 
   # Given a collection of format and filepaths, attempt to load each in turn
   # until one succeeds
   @spec resolve([{__MODULE__.s(), Path.t()}]) ::
-          {:ok, __MODULE__.t()} | {:error, :enoent | term()}
+          {:ok, __MODULE__.t() | {:file, Path.t()}} | {:error, :enoent | term()}
   defp resolve(paths) when is_list(paths) do
     paths
     |> Stream.filter(fn {_key, val} -> File.exists?(val) end)
@@ -131,15 +138,17 @@ defmodule Home.Page do
         false
     end)
     |> Stream.take(1)
-    |> Stream.concat([{:error, :enoent}])
     |> Enum.to_list()
-    |> List.first()
+    |> List.first({:error, :enoent})
   end
 
   # Given a format and filepath, attempt to load the file into the appropriate
   # container.
-  @spec load({__MODULE__.s(), Path.t()}) :: {:ok, __MODULE__.t()} | {:error, :enoent | term()}
+  @spec load({__MODULE__.s(), Path.t()}) ::
+          {:ok, __MODULE__.t() | {:file, Path.t()}} | {:error, :enoent | term()}
   defp load(format_and_path)
+
+  defp load({:asset, asset_path}), do: {:ok, {:file, asset_path}}
 
   defp load({:html, html_path}) do
     # Logger.info("loading HTML from #{html_path}")

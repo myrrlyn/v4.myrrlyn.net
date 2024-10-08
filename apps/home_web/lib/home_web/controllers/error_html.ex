@@ -21,4 +21,6 @@ defmodule HomeWeb.ErrorHTML do
   def render(template, _assigns) do
     Phoenix.Controller.status_message_from_template(template)
   end
+
+  embed_templates "error_html/*"
 end

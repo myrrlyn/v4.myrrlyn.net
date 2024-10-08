@@ -50,6 +50,7 @@ kbd,
 }
 
 samp,
+.lang-term,
 .text-term {
   font-family: "Iosevka myrrlyn term regular", "Iosevka term", var(--fonts-mono);
 }
@@ -607,7 +608,7 @@ textarea {
     content: "-";
   }
 
-  li > :not(details)::before {
+  ul li > :not(details)::before {
     @extend %navitem;
     content: "·";
   }

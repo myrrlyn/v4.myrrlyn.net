@@ -1,0 +1,6 @@
+<%= if @info && @info.summary do %>
+<%= @info.summary |> Wyz.Markdown.render!() |> elem(0) |> Phoenix.HTML.raw() %>
+<% end %>
+<hr />
+<h2>Contents</h2>
+<nav :if={@tocs != []} aria-label="Table of Contents"><.toc toc={@tocs} /></nav>

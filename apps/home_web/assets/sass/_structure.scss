@@ -25,7 +25,6 @@ body {
 
 #site-credits {
   min-height: $panel-height-credits;
-  border-block-start: 4px solid color.$bell-ochre;
 
   flex: 0 0 auto;
 
@@ -41,7 +40,6 @@ body {
 
 #content {
   border-block-start: 4px solid color.$bell-ochre;
-  border-block-end: 4px solid color.$bell-blue;
 
   margin: 0;
 

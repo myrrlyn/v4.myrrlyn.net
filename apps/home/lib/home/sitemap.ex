@@ -88,6 +88,7 @@ defmodule Home.Sitemap do
     url =
       full
       |> String.replace(Home.site_root(), "")
+      |> String.replace(~r/\/[0-9-]{11}/, "/")
       |> String.replace(~r/(index|README)?\.(md|html)$/, "")
 
     case get_title_for(name, dir) do
@@ -95,7 +96,7 @@ defmodule Home.Sitemap do
         file_as_ast(title, url, opts)
 
       {:error, :unsupported} ->
-        nil
+        "<Untitled>"
 
       {:error, error} ->
         {"span", [{"class", "error"}],
@@ -151,20 +152,10 @@ defmodule Home.Sitemap do
                   {:error, _} -> show_slug(fname)
                 end
 
-              file_as_ast(
-                aname,
-                Path.join(["/blog", cpath, String.replace(fname, ~r/^[0-9-]{11}/, "")]),
-                opts
-              )
+              {:file, fname}
             end)
 
-          cat_name =
-            case get_title_for("index.md", Path.join(Home.blog_root(), cpath)) do
-              {:ok, n} -> n
-              {:error, _} -> show_slug(cpath)
-            end
-
-          dir_as_ast(cat_name, Path.join("/blog", cpath), articles, opts)
+          {:dir, cpath, articles}
 
         {:file, _} ->
           nil
@@ -208,7 +199,6 @@ defmodule Home.Sitemap do
         _ -> false
       end)
       |> Stream.reject(&(&1 == nil))
-      |> Stream.map(&to_ast(&1, path, opts))
       |> Enum.to_list(),
       opts
     )
@@ -272,8 +262,17 @@ defmodule Home.Sitemap do
         _ -> attrs
       end
 
+    show =
+      case Home.Page.load_page(url) do
+        {:ok, page} -> [{"a", [{"href", url}], [name], %{}}]
+        {:error, :enoent} -> [name]
+      end
+
     {"details", attrs,
-     [{"summary", aria, [{"a", [{"href", url}], [name], %{}}], %{}}, make_ulli(children)], %{}}
+     [
+       {"summary", aria, show, %{}},
+       children |> Enum.map(&to_ast(&1, url, opts)) |> make_ulli()
+     ], %{}}
   end
 
   def file_as_ast(name, url, opts \\ []) do

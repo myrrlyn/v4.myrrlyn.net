@@ -28,4 +28,25 @@ defmodule Wyz.File do
       %__MODULE__{path: path, stat: stat, data: data}
     end
   end
+
+  @spec date_from_name(__MODULE__.t()) :: NaiveDateTime.t() | nil
+  def date_from_name(%__MODULE__{path: path}) do
+    case Regex.run(~r/^[0-9-]{10}/, Path.basename(path)) do
+      [date] ->
+        case Timex.parse(date, "{ISOdate}") do
+          {:ok, ndt} -> ndt
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  @spec mtime(__MODULE__.t()) :: {:ok, DateTime.t()} | {:error, atom()}
+  def mtime(this)
+
+  def mtime(%__MODULE__{stat: %File.Stat{mtime: mtime}}) do
+    DateTime.from_unix(mtime)
+  end
 end

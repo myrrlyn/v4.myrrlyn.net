@@ -97,4 +97,9 @@ defmodule Wyz.Document do
     do: this |> __MODULE__.split_frontmatter() ~>> __MODULE__.parse_frontmatter_yaml()
 
   def parse_frontmatter_yaml(_), do: {:error, :invalid_contents}
+
+  @spec date_from_filename(__MODULE__.t()) :: NaiveDateTime.t() | nil
+  def date_from_filename(this)
+  def date_from_filename(%__MODULE__{file: %Wyz.File{} = file}), do: Wyz.File.date_from_name(file)
+  def date_from_filename(%__MODULE__{}), do: nil
 end

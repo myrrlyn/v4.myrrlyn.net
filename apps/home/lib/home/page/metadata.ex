@@ -14,8 +14,9 @@ defmodule Home.Page.Metadata do
 
   defstruct title: nil,
             subtitle: nil,
-            tab_title: nil,
+            page_title: nil,
             date: nil,
+            about: nil,
             summary: nil,
             show_toc: true,
             published: true,
@@ -28,15 +29,27 @@ defmodule Home.Page.Metadata do
   are held in the `extra` block.
   """
   @type t :: %__MODULE__{
-          title: String.t(),
+          # Presentational title in an `<h1>`.
+          title: String.t() | nil,
+          # Presentational subtitle in an `<h2>`.
           subtitle: String.t() | nil,
-          tab_title: String.t() | nil,
-          date: DateTime.t() | nil,
+          # Browser title in `<title>` and the sitemap. Defaults to `.tite`.
+          page_title: String.t() | nil,
+          # Date of publication.
+          date: DateTime.t() | NaiveDateTime.t() | nil,
+          # Information about the article, displayed in the sidebar.
+          about: String.t() | nil,
+          # Information about the article, kept in `<head>`. Defaults to `.about`.
           summary: String.t() | nil,
-          show_toc: bool,
+          # Whether to print the ToC in the sidebar.
+          show_toc: bool | Range.t(),
+          # Whether to show the article in the sitemap (or even serve it at all).
           published: bool,
+          # Probably never going to use this.
           tags: [String.t()],
+          # Additional key/value data used to describe the page in.
           metadata: [{String.t(), String.t()}],
+          # Anything else.
           extra: %{String.t() => any}
         }
 
@@ -57,21 +70,16 @@ defmodule Home.Page.Metadata do
   """
   @spec from_yaml(map()) :: {:ok, __MODULE__.t()} | {:error, any()}
   def from_yaml(yaml) do
-    OK.for do
-      this <-
-        yaml
-        |> Enum.map(&__MODULE__.transform/1)
-        |> Enum.reduce({:ok, %__MODULE__{}}, fn {path, value}, this ->
-          OK.for do
-            this <- this
-            value <- value
-          after
-            put_in(this, path, value)
-          end
-        end)
-    after
-      this
-    end
+    yaml
+    |> Enum.map(&__MODULE__.transform/1)
+    |> Enum.reduce({:ok, %__MODULE__{}}, fn {path, value}, this ->
+      OK.for do
+        this <- this
+        value <- value
+      after
+        put_in(this, path, value)
+      end
+    end)
   end
 
   @spec from_html(String.t() | Floki.html_tree()) :: {:ok, __MODULE__.t()} | {:error, term()}
@@ -81,25 +89,42 @@ defmodule Home.Page.Metadata do
   def from_html(html) do
     meta = html |> Floki.find("meta[name^=\"wyz-\"]")
 
-    title =
-      html
-      |> Floki.find("title")
-      |> Enum.take(1)
-      |> Enum.map(fn {_, _, [inner]} -> inner end)
-      |> List.first()
+    page_title = html |> Floki.find("title") |> get_node_text()
+    title = html |> Floki.find("h1") |> get_node_text()
+    subtitle = html |> Floki.find("h1 + h2") |> get_node_text()
 
     published = get_floki_value(meta, "published") |> List.first("1") != "0"
 
-    {:ok, %__MODULE__{title: title, published: published}}
+    {:ok,
+     %__MODULE__{title: title, subtitle: subtitle, page_title: page_title, published: published}}
+  end
+
+  def get_node_text(html) when is_list(html) do
+    html
+    |> Enum.take(1)
+    |> Enum.map(fn {_, _, inner} -> inner end)
+    |> Enum.map(&Floki.text/1)
+    |> List.first()
   end
 
   def update_document(%Wyz.Document{} = doc) do
-    doc
-    |> Wyz.Document.parse_frontmatter_yaml()
-    ~>> (fn
-           %Wyz.Document{meta: yaml} = doc ->
-             yaml |> __MODULE__.from_yaml() ~> (&%Wyz.Document{doc | meta: &1}).()
-         end).()
+    OK.for do
+      %Wyz.Document{meta: yaml} = doc2 <- Wyz.Document.parse_frontmatter_yaml(doc)
+      meta <- __MODULE__.from_yaml(yaml)
+    after
+      %Wyz.Document{
+        doc2
+        | meta: %__MODULE__{
+            meta
+            | date:
+                case meta.date do
+                  nil -> Wyz.Document.date_from_filename(doc)
+                  %DateTime{} = dt -> dt
+                  %NaiveDateTime{} = ndt -> ndt
+                end
+          }
+      }
+    end
   end
 
   def get_floki_value(html, name) do
@@ -116,6 +141,9 @@ defmodule Home.Page.Metadata do
   def transform(key_val)
 
   # `toc:` in text, but `.show_toc` in code.
+  def transform({"toc", [lo, hi]}) when is_integer(lo) and is_integer(hi),
+    do: {[Access.key(:show_toc)], {:ok, lo..hi}}
+
   def transform({"toc", show_toc}), do: {[Access.key(:show_toc)], {:ok, show_toc}}
 
   def transform({"date", text}) when is_binary(text) do

@@ -3,10 +3,6 @@
     <header>
       <h1 class="title"><%= @info.title %></h1>
       <h2 :if={@info.subtitle} class="subtitle"><%= @info.subtitle %></h2>
-      <p :if={@info.summary}><%= @info.summary |> Wyz.Markdown.render!() |> elem(0) |> Phoenix.HTML.raw() %></p>
-      <nav :if={@tocs != []} aria-label="Table of Contents">
-        <.toc toc={@tocs} />
-      </nav>
     </header>
     <hr />
   <% end %>

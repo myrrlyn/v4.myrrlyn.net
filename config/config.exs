@@ -13,7 +13,8 @@ import Config
 config :home,
   ecto_repos: [Home.Repo]
 
-config :home, Home, site_root: Path.join([File.cwd!(), "apps", "home", "priv", "pages"])
+config :home, Home,
+  site_root: ["..", "apps", "home", "priv", "pages"] |> Path.join() |> Path.expand(__DIR__)
 
 config :home_web,
   ecto_repos: [Home.Repo],
@@ -31,7 +32,7 @@ config :home_web, HomeWeb.Endpoint,
   live_view: [signing_salt: "5SDHJsZf"]
 
 config :dart_sass,
-  version: "1.77.8",
+  version: "1.79.3",
   default: [
     args: ~w(-Inode_modules sass/:../priv/static/css/),
     cd: Path.expand("../apps/home_web/assets", __DIR__)

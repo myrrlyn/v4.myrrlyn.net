@@ -1,19 +1,32 @@
 <header id="banner" role="banner" class="screen-only"></header>
-
 <div id="content">
-<main class="panel-text">
-<%!-- <.flash_group flash={@flash} /> --%>
+  <main class="panel-text">
+    <%!-- <.flash_group flash={@flash} /> --%>
+    <%= @inner_content %>
+  </main>
 
-<%= @inner_content %>
-</main>
-<aside id="about" class="panel-text screen-only">
-<h2>Sidebar</h2>
-<p>Hello I am the infobar</p>
-<p>This site is under construction! Go to <a href="//myrrlyn.net/">the one that
-isn't at my house</a> instead.</p>
-
-<.sitemap slug={@slug} />
-</aside>
+  <aside id="about" class="panel-text screen-only">
+    <%= view_module(@conn).about(assigns) %>
+    <h2>Site Map</h2>
+    <.sitemap slug={assigns[:slug] || "/"} />
+    <hr />
+    <p>This site is under construction! Go to <a href="//myrrlyn.net/">the one that
+        isn't at my house</a> instead.</p>
+    <h2>Credits</h2>
+    <ul>
+      <li>Site version: <code><%= Mix.Project.config()[:version] %></code></li>
+      <li>
+        <a href="//sass-lang.com/">Sass</a>
+        version: <code><%= Application.get_env(:dart_sass, :version) %></code>
+      </li>
+      <li>
+        <a href="//phoenixframework.org/">Phoenix</a>
+        version: <code><%= :application.get_key(:phoenix, :vsn) |> elem(1) %></code>
+      </li>
+      <li>
+        <a href="//elixir-lang.org/">Elixir</a> version: <code><%= System.version() %></code>
+      </li>
+    </ul>
+  </aside>
 </div>
-
-<.footer />
+<%!-- <.footer /> --%>
