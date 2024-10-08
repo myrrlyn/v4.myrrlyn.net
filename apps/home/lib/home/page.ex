@@ -3,10 +3,6 @@ defmodule Home.Page do
   require OK
   use OK.Pipe
 
-  # The default file-system root in which to search for relative paths. Can be
-  # overridden by setting `config :home, Home.Page, page_root: "/path/to/pages"`
-  @page_root Path.join("priv", "pages")
-
   defstruct orig: nil, html: nil, info: nil, tocs: []
 
   @typedoc """
@@ -39,10 +35,16 @@ defmodule Home.Page do
   Loads a page out of the page-root. Can only be used on
   Markdown-with-frontmatter or HTML files.
   """
-  @spec load_page([String.t()], Path.t()) :: {:ok, __MODULE__.t()} | {:error, any()}
-  def load_page(path, page_root \\ @page_root) when is_list(path) and is_binary(page_root) do
+  @spec load_page(
+          String.t() | [String.t()],
+          Path.t() | nil
+        ) :: {:ok, __MODULE__.t()} | {:error, any()}
+  def load_page(path, site_root \\ nil)
+  def load_page(path, site_root) when is_binary(path), do: load_page([path], site_root)
+
+  def load_page(path, site_root) when is_list(path) do
     path
-    |> lookup(page_root)
+    |> lookup(site_root || Home.site_root())
     |> resolve()
   end
 
@@ -65,14 +67,35 @@ defmodule Home.Page do
     end
   end
 
+  @doc """
+  Attempts to discover the page title. This is always known from Markdown
+  documents, and is either the `<title>` or first `<h1>` element in HTML
+  documents.
+  """
+  @spec get_title(__MODULE__.t()) :: {:ok, String.t()} | {:error, :no_title}
+  def get_title(page)
+  def get_title(%__MODULE__{orig: %Wyz.Document{}, info: info}), do: {:ok, info.title}
+
+  def get_title(%__MODULE__{orig: %Wyz.File{}, html: html}) do
+    OK.for do
+      ast <- Floki.parse_document(html)
+      title = Floki.find(ast, "title")
+      h1s = Floki.find(ast, "h1")
+    after
+      case Enum.concat(title, h1s) |> Enum.take(1) |> Enum.map(&Wyz.Markdown.text_contents/1) do
+        [show] -> {:ok, Enum.join(show, " ")}
+        [] -> {:error, :no_title}
+      end
+    end
+  end
+
   # Receives a list of path fragments and a root directory, and produces a set
   # of format and filenames which may satisfy the request.
-  @spec lookup([String.t()], Path.t()) :: [{__MODULE__.s(), Path.t()}]
-  defp lookup(path, page_root) when is_list(path) and is_binary(page_root) do
+  @spec lookup([String.t()], Path.t() | nil) :: [{__MODULE__.s(), Path.t()}]
+  defp lookup(path, site_root) when is_list(path) do
     full_path =
-      Application.get_env(:home, __MODULE__)
-      |> Keyword.get(:page_root, page_root)
-      |> Path.join(path)
+      [site_root || Home.site_root() | path]
+      |> Path.join()
 
     case Path.extname(full_path) do
       ".html" ->
@@ -119,12 +142,12 @@ defmodule Home.Page do
   defp load(format_and_path)
 
   defp load({:html, html_path}) do
-    Logger.info("loading HTTML from #{html_path}")
+    # Logger.info("loading HTML from #{html_path}")
     html_path |> Wyz.File.load() ~>> from_html()
   end
 
   defp load({:markdown, markdown_path}) do
-    Logger.info("loading Markdown from #{markdown_path}")
+    # Logger.info("loading Markdown from #{markdown_path}")
     markdown_path |> Wyz.Document.load() ~>> from_markdown()
   end
 
@@ -139,7 +162,16 @@ defmodule Home.Page do
   end
 
   @spec from_html(Wyz.File.t()) :: {:ok, __MODULE__.t()}
-  defp from_html(%Wyz.File{data: html} = file), do: {:ok, %__MODULE__{orig: file, html: html}}
+  defp from_html(%Wyz.File{data: html} = file) do
+    OK.try do
+      parsed <- Floki.parse_document(html)
+      info <- __MODULE__.Metadata.from_html(parsed)
+    after
+      {:ok, %__MODULE__{orig: file, html: html, info: info}}
+    rescue
+      _ -> {:ok, %__MODULE__{orig: file, html: html}}
+    end
+  end
 
   @spec from_markdown(Wyz.Document.t()) :: {:ok, __MODULE__.t()} | {:error, term()}
   defp from_markdown(%Wyz.Document{} = doc) do

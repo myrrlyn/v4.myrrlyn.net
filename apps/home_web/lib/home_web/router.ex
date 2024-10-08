@@ -34,6 +34,13 @@ defmodule HomeWeb.Router do
       live_dashboard "/dashboard", metrics: HomeWeb.Telemetry
     end
 
+    scope "/blog", HomeWeb do
+      pipe_through :browser
+
+      get "/:category/:article/:resource", BlogController, :load
+      get "/:category/:article", BlogController, :load
+    end
+
     scope "/", HomeWeb do
       pipe_through :browser
 

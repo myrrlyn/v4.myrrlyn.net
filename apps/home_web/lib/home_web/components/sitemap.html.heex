@@ -1,0 +1,3 @@
+<nav>
+<%= Home.Sitemap.sitenav(at: @slug) |> Earmark.Transform.transform(%Earmark.Options{compact_output: true}) |> Phoenix.HTML.raw() %>
+</nav>

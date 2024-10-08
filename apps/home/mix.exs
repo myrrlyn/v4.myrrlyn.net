@@ -44,6 +44,7 @@ defmodule Home.MixProject do
       {:jason, "~> 1.2"},
       {:earmark, "~> 1.4"},
       {:earmark_parser, "~> 1.4"},
+      {:floki, "~> 0.36"},
       {:ok, "~> 2.3"},
       {:yaml_elixir, "~> 2.11"},
       {:timex, "~> 3.7"},

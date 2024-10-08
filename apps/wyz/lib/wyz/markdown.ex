@@ -34,6 +34,13 @@ defmodule Wyz.Markdown do
     sub_sup: true
   }
 
+  def render!(source) do
+    case render(source) do
+      {:ok, out} -> out
+      {:error, {_, err}} -> raise Earmark.Error, inspect(err)
+    end
+  end
+
   @doc """
   Produces an HTML string for a Markdown document.
 
@@ -50,14 +57,20 @@ defmodule Wyz.Markdown do
     HTML string is Earmark's best effort at processing the input, and we make
     no guarantees about its contents.
   """
-  @spec render(Wyz.Document.t(), Range.t(1, 6)) ::
+  @spec render(Wyz.Document.t() | String.t(), Range.t(1, 6)) ::
           {:ok, {String.t(), __MODULE__.toc()}} | {:error, term()}
   def render(doc, keep_headings \\ 1..6)
 
   def render(%Wyz.Document{} = doc, keep_headings) do
-    OK.try do
+    OK.for do
       %Wyz.Document{text: {_, body}} <- Wyz.Document.parse_frontmatter_yaml(doc)
+    after
+      render(body, keep_headings)
+    end
+  end
 
+  def render(text, keep_headings) when is_binary(text) do
+    OK.try do
       idents =
         case __MODULE__.Idents.start_link() do
           {:ok, agent} -> agent
@@ -66,7 +79,7 @@ defmodule Wyz.Markdown do
         end
 
       {status, output, messages} =
-        Earmark.Parser.as_ast(body, @opts_earmark)
+        Earmark.Parser.as_ast(text, @opts_earmark)
 
       {ast, messages} <- {status, {output, messages}}
       ast = Earmark.Transform.map_ast(ast, &__MODULE__.walk_ast(&1, idents))
@@ -146,9 +159,10 @@ defmodule Wyz.Markdown do
   Produces a list of strings containing only the plaintext contents of a DOM
   subtree.
   """
-  @spec text_contents(Earmark.ast()) :: [String.t()]
+  @spec text_contents(Earmark.ast() | Floki.html_tree()) :: [String.t()]
   def text_contents(ast)
   def text_contents(text) when is_binary(text), do: [text]
+  def text_contents({_, _, inner}), do: text_contents(inner)
   def text_contents({_, _, inner, _}), do: text_contents(inner)
 
   def text_contents(ast) when is_list(ast),

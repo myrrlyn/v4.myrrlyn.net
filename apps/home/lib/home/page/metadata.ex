@@ -7,6 +7,7 @@ defmodule Home.Page.Metadata do
   Markdown document, regardless of application.
   """
 
+  require Floki
   require Logger
   require OK
   use OK.Pipe
@@ -73,14 +74,37 @@ defmodule Home.Page.Metadata do
     end
   end
 
-  def update_document(%Wyz.Document{} = doc),
-    do:
-      doc
-      |> Wyz.Document.parse_frontmatter_yaml()
-      ~>> (fn
-             %Wyz.Document{meta: yaml} = doc ->
-               yaml |> __MODULE__.from_yaml() ~> (&%Wyz.Document{doc | meta: &1}).()
-           end).()
+  @spec from_html(String.t() | Floki.html_tree()) :: {:ok, __MODULE__.t()} | {:error, term()}
+  def from_html(html)
+  def from_html(html) when is_binary(html), do: html |> Floki.parse_document() ~> from_html()
+
+  def from_html(html) do
+    meta = html |> Floki.find("meta[name^=\"wyz-\"]")
+
+    title =
+      html
+      |> Floki.find("title")
+      |> Enum.take(1)
+      |> Enum.map(fn {_, _, [inner]} -> inner end)
+      |> List.first()
+
+    published = get_floki_value(meta, "published") |> List.first("1") != "0"
+
+    {:ok, %__MODULE__{title: title, published: published}}
+  end
+
+  def update_document(%Wyz.Document{} = doc) do
+    doc
+    |> Wyz.Document.parse_frontmatter_yaml()
+    ~>> (fn
+           %Wyz.Document{meta: yaml} = doc ->
+             yaml |> __MODULE__.from_yaml() ~> (&%Wyz.Document{doc | meta: &1}).()
+         end).()
+  end
+
+  def get_floki_value(html, name) do
+    html |> Floki.attribute("[name$=\"-#{name}\"]", "value")
+  end
 
   @doc """
   Translates each key/value pair of a mapping into the suitable field-name

@@ -1,9 +1,6 @@
 <ol :if={@toc != []}>
   <li :for={%Wyz.Markdown.Toc{node: {_, _, inner, _}, ident: ident, children: children} <- @toc}>
-    <.link href={"#" <> ident}><%= inner |> Phoenix.HTML.raw() %></.link>
-    <%= if children != [] do %>
-      <.toc toc={children} />
-    <% else %>
-    <% end %>
+    <.link href={"#" <> ident}><%= inner |> Earmark.Transform.transform(compact_output: true) |> Phoenix.HTML.raw() %></.link>
+    <.toc :if={children != []} toc={children} />
   </li>
 </ol>

@@ -24,20 +24,31 @@ defmodule HomeWeb.PageController do
     OK.try do
       page <- path |> Home.Page.load_page() ~>> Home.Page.show()
     after
-      conn
-      |> put_flash(:error, "this site is under construction")
-      |> assign(:classes, ["theme-ansi" | conn.assigns[:classes] || []])
-      |> render(conn.assigns[:template] || :page,
-        html: page.html,
-        info: page.info,
-        tocs: page.tocs
-      )
+      conn |> assign(:slug, Path.join(["/" | path])) |> show_page(page)
     rescue
-      error ->
-        conn
-        |> put_status(403)
-        |> put_view(HomeWeb.ErrorHTML)
-        |> render("403.html", message: error)
+      err -> error(conn, status: 403, message: err)
     end
+  end
+
+  def show_page(conn, %Home.Page{} = page) do
+    conn
+    |> put_flash(:error, "this site is under construction")
+    |> assign(:classes, ["theme-ansi" | conn.assigns[:classes] || []])
+    |> render(conn.assigns[:template] || :page,
+      html: page.html,
+      info: page.info,
+      tocs: page.tocs
+    )
+  end
+
+  def error(conn, opts \\ []) do
+    status = Keyword.get(opts, :status, 404)
+
+    conn
+    |> put_status(status)
+    |> put_view(HomeWeb.ErrorHTML)
+    |> render(Keyword.get(opts, :template, "#{status}.html"),
+      message: Keyword.get(opts, :message)
+    )
   end
 end
