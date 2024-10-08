@@ -1,0 +1,35 @@
+#content {
+  display: flex;
+  flex-direction: row-reverse;
+
+  // Content hangs from the top vertically, in the center horizontally.
+  align-items: top;
+  justify-content: center;
+
+  // On tall screens, clamp the footer to the bottom of the viewport and scroll
+  // the text panels.
+  @media (min-height: $viewport-height-tall) {
+    max-height: calc(100dvh - #{$panel-height-banner} - #{$panel-height-credits} - 16px);
+    & > * {
+      max-height: inherit;
+      overflow-y: auto;
+    }
+  }
+}
+
+main {
+  max-width: 80ch;
+
+  flex: 2 1 0;
+}
+
+#about {
+  max-width: 40ch;
+  min-width: 20ch;
+
+  flex: 1 2 0;
+}
+
+.panel-text {
+	padding: 1em 2em;
+}

@@ -1,23 +1,23 @@
 main,
 h1 {
-  counter-reset: ct_chapter ct_section ct_paragraph;
+  counter-reset: ct_h2 ct_h3 ct_paragraph;
 }
 
-body:not(.no-counters) {
-  h2 {
-    counter-reset: ct_section;
-    counter-increment: ct_chapter;
+body:not(.no-counters) main {
+  h2:not(.subtitle) {
+    counter-reset: ct_h3;
+    counter-increment: ct_h2;
 
     &::before {
-      content: counter(ct_chapter) ". ";
+      content: counter(ct_h2) ". ";
     }
   }
 
   h3 {
-    counter-increment: ct_section;
+    counter-increment: ct_h3;
 
     &::before {
-      content: counter(ct_chapter) "." counter(ct_section) ". ";
+      content: counter(ct_h2) "." counter(ct_h3) ". ";
     }
   }
 
@@ -30,7 +30,7 @@ main p {
   counter-increment: ct_paragraph;
 
   &::before {
-    content: "c" counter(ct_chapter) "s" counter(ct_section) "p" counter(ct_paragraph) ": ";
+    content: "c" counter(ct_h2) "s" counter(ct_h3) "p" counter(ct_paragraph) ": ";
   }
 }
 */

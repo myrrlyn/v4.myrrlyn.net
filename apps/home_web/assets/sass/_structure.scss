@@ -16,12 +16,14 @@ body {
   min-height: $panel-height-banner;
   background-color: blue;
 
+  border-block-end: 4px solid skyblue;
+
   flex: 1 1 auto;
 }
 
 #site-credits {
   min-height: $panel-height-credits;
-  background-color: green;
+  border-block-start: 4px solid goldenrod;
 
   flex: 0 0 auto;
 
@@ -36,29 +38,33 @@ body {
 }
 
 #content {
+  border-block-start: 4px solid goldenrod;
+  border-block-end: 4px solid skyblue;
+
   margin: 0;
 
   flex: 1 1 auto;
 }
 
 #about {
+  margin: 0;
+
   @media (prefers-color-scheme: light) {
-    background-color: orange;
+    background-color: tan;
   }
   @media (prefers-color-scheme: dark) {
-    background-color: brown;
-  }
-}
-
-main {
-  @media (prefers-color-scheme: light) {
-    background-color: azure;
+    background-color: chocolate;
   }
 }
 
 main,
 #about {
   padding: 1em;
+}
+
+nav ol {
+  padding-inline-start: 1rem;
+  line-height: 1.5;
 }
 
 @media screen and (min-width: $viewport-width-wide) {

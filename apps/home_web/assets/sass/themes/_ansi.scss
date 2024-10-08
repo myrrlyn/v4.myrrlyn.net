@@ -16,7 +16,7 @@ $iso-black: darken(#2b2b2c, 8%) !default;
 
 :root {
   color-scheme: light dark;
-  --line-height: 1.2rem;
+  --line-height: 1.2;
 }
 
 @media (prefers-color-scheme: light) {
@@ -54,11 +54,17 @@ samp,
   font-family: "Iosevka myrrlyn term regular", "Iosevka term", var(--fonts-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  body,
-  main {
-    background-color: black;
-    color: white;
+body,
+main {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+a {
+  color: var(--ansi-blue);
+
+  &:visited {
+    color: var(--ansi-purple);
   }
 }
 
@@ -77,31 +83,61 @@ h6 {
 
 h1 {
   font-size: 2rem;
+
+  &.title {
+    color: var(--ansi-blue);
+  }
 }
 
 h2 {
   font-size: 1.875rem;
+
+  &:not(.subtitle) {
+    color: var(--ansi-purple);
+  }
+
+  &.subtitle {
+    color: var(--ansi-orange);
+  }
 }
 
 h3 {
   font-size: 1.75rem;
+  color: var(--ansi-green);
 }
 
 h4 {
   font-size: 1.625rem;
+  color: var(--ansi-yellow);
 }
 
 h5 {
   font-size: 1.5rem;
+  color: var(--ansi-red);
 }
 
 h6 {
   font-size: 1.25rem;
+  color: var(--ansi-orange);
 }
 
 p {
-  line-height: 1.375rem;
+  line-height: 1.375;
+  // &:first-child {
+  //   margin-block-start: 0;
+  // }
+  // &:last-child {
+  //   margin-block-end: 0;
+  // }
 }
+
+// aside,
+// blockquote,
+// li {
+//   &:has(> p) {
+//     padding-block: 1rem;
+//   }
+// }
 
 blockquote {
   // &::before {
@@ -140,6 +176,14 @@ blockquote {
   border: 0 solid transparent;
   margin: 1rem 0;
   padding: 0 1rem;
+
+  > :only-child {
+    margin-block: 0;
+  }
+
+  &:has(> :only-child) {
+    padding-block: 1rem;
+  }
 }
 
 aside,
@@ -148,21 +192,30 @@ blockquote {
 }
 
 blockquote {
-  border-color: var(--bg);
+  --stripe-basis: 3;
+  --color-bg: var(--bg);
+  --color-a1: var(--ansi-red);
+  --color-a2: var(--ansi-blue);
+  @media (prefers-color-scheme: dark) {
+    --color-a1: var(--ansi-green);
+    --color-a2: var(--ansi-yellow);
+  }
+  border-color: var(--fg);
   border-style: solid;
   border-inline-start-width: 12px;
+  border-inline-end-width: 12px;
   border-image: repeating-linear-gradient(
-      -30deg,
-      var(--ansi-red),
-      var(--ansi-red) 12px,
-      var(--iso-white) 12px,
-      var(--iso-white) 18px,
-      var(--ansi-blue) 18px,
-      var(--ansi-blue) 30px,
-      var(--iso-white) 30px,
-      var(--iso-white) 36px
+      -60deg,
+      var(--color-a1),
+      var(--color-a1) calc(var(--stripe-basis) * 2px),
+      var(--color-bg) calc(var(--stripe-basis) * 2px),
+      var(--color-bg) calc(var(--stripe-basis) * 3px),
+      var(--color-a2) calc(var(--stripe-basis) * 3px),
+      var(--color-a2) calc(var(--stripe-basis) * 5px),
+      var(--color-bg) calc(var(--stripe-basis) * 5px),
+      var(--color-bg) calc(var(--stripe-basis) * 6px)
     )
-    12;
+    calc(12 / var(--stripe-basis));
 }
 
 .block-harm,
@@ -214,12 +267,14 @@ dl {
   }
 }
 
-ol {
+article ol {
   counter-reset: oli;
   list-style-type: none;
   padding-inline-start: 2rem;
+
   & > li {
     counter-increment: oli;
+
     &::before {
       content: counters(oli, ".") ". ";
       position: relative;
@@ -250,7 +305,7 @@ ul {
     // Draw a vertical bar on the left edge
     @extend %ul-li-vertical;
 
-    --midway: calc(var(--line-height) / 2);
+    --midway: calc(var(--line-height) * 1rem / 2);
 
     // Draw a horizontal bar between the vertical and the content
     &::before {
@@ -281,17 +336,16 @@ ul {
         @extend %ul-li-vertical;
       }
     }
-
-    // If the element is the only child of the list, disable the vertical bar
-    // entirely.
-    &:only-child::after {
-      display: none !important;
-    }
   }
 }
 
 :not(ul > li) > ul {
   margin: 1rem;
+
+  // If the list has only one element in total, don't display the vertical bar.
+  > li:only-child::after {
+    display: none !important;
+  }
 
   // On the first element of a top-level list, the vertical bar begins at the
   // half-line and *descends* the rest of the element.
@@ -381,6 +435,8 @@ figure {
   border-radius: 1rem;
   padding: 1rem;
 
+  box-shadow: 4px 4px var(--fg);
+
   figcaption {
     text-align: center;
     padding-block: 0.5rem;
@@ -423,7 +479,8 @@ form {
   @extend %form-border;
   border-radius: 1rem;
 
-  input, button {
+  input,
+  button {
     --color-border: var(--fg);
     border: 2px outset var(--color-border);
     padding: 0.25rem;
@@ -456,7 +513,11 @@ form {
     padding: 0 0.25rem;
   }
 
-  button, input[type="submit"], input[type="button"], input[type="reset"], input[disabled] {
+  button,
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"],
+  input[disabled] {
     @extend .text-mono;
     padding-inline: 0.5rem;
     border-radius: 0.5rem;

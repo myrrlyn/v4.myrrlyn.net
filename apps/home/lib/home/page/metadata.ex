@@ -142,7 +142,7 @@ defmodule Home.Page.Metadata do
   end
 
   def path_for_key(key) when is_binary(key) do
-    if (key in __MODULE__.known_keys()) |> Enum.map(&to_string/1),
+    if key in (__MODULE__.known_keys() |> Enum.map(&to_string/1)),
       do: [key |> String.to_atom() |> Access.key()],
       else: [Access.key(:extra), Access.key(key)]
   end

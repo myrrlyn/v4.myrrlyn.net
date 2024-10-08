@@ -2,6 +2,38 @@
 
 @import "structure";
 
+h1.title,
+h2.subtitle {
+  text-align: center;
+}
+
+h1.title {
+  font-size: 3rem;
+  margin-block-start: 0;
+
+  &:has(+ h2.subtitle) {
+    margin-block-end: 1rem;
+  }
+
+  + h2.subtitle {
+    margin-block-start: 1rem;
+  }
+}
+
+h2.subtitle {
+  font-size: 2.5rem;
+}
+
+.footnote {
+  font-size: small;
+  padding-inline-start: 0.125rem;
+  vertical-align: super;
+}
+
+.footnotes li p {
+  display: inline-block;
+}
+
 // @import "themes/mono";
 
 @import "themes/ansi";
