@@ -3,12 +3,10 @@ defmodule Home.Sitemap do
   require Logger
   use OK.Pipe
 
-  @subroots ["blog", "oeuvre"]
-
   @type dirent ::
           {:file, String.t()}
           | {:dir, String.t(), [__MODULE__.dirent()]}
-          | {:symlink, String.t(), String.t()}
+          | {:symlink, String.t(), Path.t()}
 
   @doc """
   Emits a structured tree of the site contents.
@@ -22,8 +20,17 @@ defmodule Home.Sitemap do
   Transforms the sitemap into an Earmark AST.
   """
   def sitenav(opts \\ []) do
-    root = Keyword.get(opts, :root, "/")
-    sitemap(opts) |> to_ast(root, opts)
+    {:dir, "/", pages} = sitemap(opts)
+    {{:dir, "blog", blog_pages}, pages} = List.keytake(pages, "blog", 1)
+    {{:dir, "oeuvre", oeuvre_pages}, pages} = List.keytake(pages, "oeuvre", 1)
+
+    opts = Keyword.update(opts, :group, "~", & &1)
+
+    make_ulli([
+      to_ast({:dir, "/", pages}, "/", [{:show, "Main Site"} | opts]),
+      to_ast({:dir, "blog", blog_pages}, "/", [{:show, "Blog"} | opts]),
+      to_ast({:dir, "oeuvre", oeuvre_pages}, "/", [{:show, "TES Writing"} | opts])
+    ])
   end
 
   @doc """
@@ -73,7 +80,7 @@ defmodule Home.Sitemap do
 
   @spec to_ast(__MODULE__.dirent(), Path.t(), Keyword.t()) :: Earmark.ast_tuple() | nil
   def to_ast(item, dir, opts \\ [])
-  def to_ast({:symlink, _, _}, _, opts), do: nil
+  def to_ast({:symlink, _, _}, _, _), do: nil
 
   def to_ast({:file, name}, dir, opts) do
     full = Path.join(dir, name)
@@ -96,18 +103,25 @@ defmodule Home.Sitemap do
     end
   end
 
-  def to_ast({:dir, "blog", categories}, parent, opts) do
+  def to_ast({:dir, dir = "blog", categories}, "/", opts) do
+    {show, opts} = List.keytake(opts, :show, 0) || {nil, opts}
+
     blogname =
-      case get_title_for("index.md", "blog") do
-        {:ok, n} -> n
-        {:error, _} -> "Blog"
+      with nil <- show, {:error, _} <- get_title_for("index.md", dir) do
+        "Blog"
+      else
+        {:show, name} -> name
+        {:ok, name} -> name
+        name -> name
       end
+
+    {{:group, group}, opts} = List.keytake(opts, :group, 0) || {{:group, nil}, opts}
 
     categories =
       categories
       |> Enum.map(fn
         {:dir, cpath, articles} ->
-          cpath_full = Path.join([Home.site_root(), "blog", cpath])
+          cpath_full = Path.join(Home.blog_root(), cpath)
 
           articles =
             articles
@@ -139,12 +153,13 @@ defmodule Home.Sitemap do
 
               file_as_ast(
                 aname,
-                Path.join(["/blog", cpath, String.replace(fname, ~r/^[0-9-]{11}/, "")])
+                Path.join(["/blog", cpath, String.replace(fname, ~r/^[0-9-]{11}/, "")]),
+                opts
               )
             end)
 
           cat_name =
-            case get_title_for("index.md", Path.join([Home.site_root(), "blog", cpath])) do
+            case get_title_for("index.md", Path.join(Home.blog_root(), cpath)) do
               {:ok, n} -> n
               {:error, _} -> show_slug(cpath)
             end
@@ -159,59 +174,45 @@ defmodule Home.Sitemap do
         _ -> false
       end)
 
-    dir_as_ast("Blog", "/blog", categories, opts)
+    dir_as_ast(blogname, "/blog", categories, [{:group, group} | opts])
   end
 
   def to_ast({:dir, dir, children}, parent, opts) do
     path = Path.join(parent, dir)
 
-    case children
-         # No empty directories
-         |> Stream.reject(fn
-           {:dir, _, []} -> true
-           _ -> false
-         end)
-         # No index/README files
-         |> Stream.reject(fn
-           {:file, name} -> name in ["index.md", "README.md"]
-           _ -> false
-         end)
-         |> Enum.to_list() do
-      [] ->
-        nil
+    {show, opts} = List.keytake(opts, :show, 0) || {nil, opts}
 
-      c ->
-        show =
-          case dir do
-            "/" -> "~myrrlyn/"
-            _ -> nil
-          end
+    dirname =
+      with nil <- show,
+           {:error, _} <- get_title_for("index.md", dir),
+           {:error, _} <- get_title_for("README.md", dir) do
+        dir |> String.split(~r/[_-]/) |> Enum.map(&String.capitalize/1) |> Enum.join(" ")
+      else
+        {:show, name} -> name
+        {:ok, name} -> name
+        name -> name
+      end
 
-        dirname =
-          with nil <- show,
-               {:error, _} <- get_title_for("index.md", dir),
-               {:error, _} <- get_title_for("README.md", dir) do
-            dir |> String.split(~r/[_-]/) |> Enum.map(&String.capitalize/1) |> Enum.join(" ")
-          else
-            {:ok, name} -> name
-            name -> name
-          end
-
-        dir_as_ast(
-          dirname,
-          String.replace(path, Home.site_root(), ""),
-          c
-          |> Stream.map(&to_ast(&1, path, opts))
-          |> Stream.reject(fn v -> v == nil end)
-          |> Stream.map(fn n -> {"li", [], n, %{}} end)
-          |> Enum.to_list(),
-          opts
-        )
-    end
+    dir_as_ast(
+      dirname,
+      String.replace(path, Home.site_root(), ""),
+      children
+      # No empty directories
+      |> Stream.reject(fn
+        {:dir, _, []} -> true
+        _ -> false
+      end)
+      # No index/README files
+      |> Stream.reject(fn
+        {:file, name} -> name in ["index.md", "README.md"]
+        _ -> false
+      end)
+      |> Stream.reject(&(&1 == nil))
+      |> Stream.map(&to_ast(&1, path, opts))
+      |> Enum.to_list(),
+      opts
+    )
   end
-
-  # def get_title_for("index.md", dir), do: {:ok, dir |> reseat() |> Path.basename()}
-  # def get_title_for("README.md", dir), do: {:ok, dir |> reseat() |> Path.basename()}
 
   def get_title_for(name, dir) do
     if Path.extname(name) in [".html", ".md"] do
@@ -231,16 +232,15 @@ defmodule Home.Sitemap do
       page <- Home.Page.load_page([name], dir)
     after
       case page do
-        %Home.Page{orig: %Wyz.Document{}, info: info} ->
+        %Home.Page{info: %Home.Page.Metadata{} = info} ->
           !info.published
 
         %Home.Page{orig: %Wyz.File{}, html: html} ->
           case html
                |> Floki.parse_document()
-               ~> Floki.find("meta[name=\"myrrlyn-hide-sitemap\"]") do
-            {:ok, nil} -> false
-            {:ok, _} -> true
-            _ -> false
+               ~> Floki.find("meta[name=\"wyz-published\"]") do
+            {:ok, "0"} -> false
+            _ -> true
           end
 
         _ ->
@@ -254,39 +254,35 @@ defmodule Home.Sitemap do
   def dir_as_ast(name, url, children, opts \\ []) do
     parent = Path.dirname(url)
 
-    at = Keyword.get(opts, :at, "/")
+    {{:group, group}, opts} = List.keytake(opts, :group, 0) || {{:group, nil}, opts}
 
     attrs =
-      if url != "/" do
-        [{"name", parent}]
-      else
-        []
+      cond do
+        group != nil -> [{"name", group}]
+        url != "/" -> [{"name", parent}]
+        true -> []
       end
 
+    aria = aria_nav(url, opts)
+
     attrs =
-      if String.starts_with?(at, url) do
-        [{"open", "1"} | attrs]
-      else
-        attrs
+      case aria do
+        [{_, _}] -> [{"open", "1"} | attrs]
+        [] -> attrs
+        _ -> attrs
       end
 
     {"details", attrs,
-     [
-       {"summary", [], [{"a", [{"href", url}], [name], %{}}], %{}},
-       {"ul", [{"class", "nav"}], Enum.map(children, fn c -> {"li", [], [c], %{}} end), %{}}
-     ], %{}}
+     [{"summary", aria, [{"a", [{"href", url}], [name], %{}}], %{}}, make_ulli(children)], %{}}
   end
 
   def file_as_ast(name, url, opts \\ []) do
-    curr =
-      if url == Keyword.get(opts, :at) do
-        [{"aria-current", "page"}]
-      else
-        []
-      end
-
-    {"a", [{"href", Path.rootname(url)} | curr], [name], %{}}
+    url = Path.rootname(url)
+    {"span", aria_nav(url, opts), [{"a", [{"href", url}], [name], %{}}], %{}}
   end
+
+  def make_ulli(items),
+    do: {"ul", [{"class", "nav"}], items |> Enum.map(&{"li", [], [&1], %{}}), %{}}
 
   def show_slug(slug) do
     slug
@@ -300,5 +296,15 @@ defmodule Home.Sitemap do
     |> Enum.join(" ")
   end
 
-  def reseat(dir), do: dir |> String.replace(Home.site_root(), "~myrrlyn")
+  def aria_nav(url, opts) do
+    at = Keyword.get(opts, :at, "/")
+
+    cond do
+      at == url -> [{"aria-current", "page"}]
+      String.starts_with?(at, "/blog") and url == "/" -> []
+      String.starts_with?(at, "/oeuvre") and url == "/" -> []
+      String.starts_with?(at, url) -> [{"aria-current", "step"}]
+      true -> []
+    end
+  end
 end

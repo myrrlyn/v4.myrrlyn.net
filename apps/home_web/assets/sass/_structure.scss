@@ -1,3 +1,5 @@
+@use "color";
+
 $viewport-height-tall: 40rem;
 $viewport-width-wide: 60rem;
 
@@ -14,16 +16,16 @@ body {
 
 #banner {
   min-height: $panel-height-banner;
-  background-color: blue;
+  background-color: forestgreen;
 
-  border-block-end: 4px solid skyblue;
+  border-block-end: 4px solid color.$bell-blue;
 
   flex: 1 1 auto;
 }
 
 #site-credits {
   min-height: $panel-height-credits;
-  border-block-start: 4px solid goldenrod;
+  border-block-start: 4px solid color.$bell-ochre;
 
   flex: 0 0 auto;
 
@@ -38,8 +40,8 @@ body {
 }
 
 #content {
-  border-block-start: 4px solid goldenrod;
-  border-block-end: 4px solid skyblue;
+  border-block-start: 4px solid color.$bell-ochre;
+  border-block-end: 4px solid color.$bell-blue;
 
   margin: 0;
 
@@ -49,12 +51,12 @@ body {
 #about {
   margin: 0;
 
-  @media (prefers-color-scheme: light) {
-    background-color: tan;
-  }
-  @media (prefers-color-scheme: dark) {
-    background-color: chocolate;
-  }
+  border-inline-start: 2px solid var(--fg);
+}
+
+main {
+  border-inline-start: 4px double var(--fg);
+  border-inline-end: 2px solid var(--fg);
 }
 
 main,

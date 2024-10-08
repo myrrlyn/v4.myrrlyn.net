@@ -5,7 +5,7 @@ defmodule Home.Umbrella.MixProject do
     [
       name: "v4.myrrlyn.net",
       apps_path: "apps",
-      version: "0.1.0",
+      version: "4.0.0-rc1",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
