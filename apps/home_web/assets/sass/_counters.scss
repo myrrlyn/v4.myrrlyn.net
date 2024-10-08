@@ -1,0 +1,66 @@
+main,
+h1 {
+  counter-reset: ct_chapter ct_section ct_paragraph;
+}
+
+body:not(.no-counters) {
+  h2 {
+    counter-reset: ct_section;
+    counter-increment: ct_chapter;
+
+    &::before {
+      content: counter(ct_chapter) ". ";
+    }
+  }
+
+  h3 {
+    counter-increment: ct_section;
+
+    &::before {
+      content: counter(ct_chapter) "." counter(ct_section) ". ";
+    }
+  }
+
+  /*
+main, h1, h2, h3 {
+  counter-reset: ct_paragraph;
+}
+
+main p {
+  counter-increment: ct_paragraph;
+
+  &::before {
+    content: "c" counter(ct_chapter) "s" counter(ct_section) "p" counter(ct_paragraph) ": ";
+  }
+}
+*/
+}
+
+main {
+  counter-reset: ct_images;
+  counter-reset: ct_figures;
+
+  img {
+    counter-increment: ct_images;
+  }
+
+  figure {
+    counter-increment: ct_figures;
+
+    // If there is not a `figcaption`, generate one
+    &:not(:has(figcaption))::after {
+      content: "Figure " counter(ct_figures);
+      display: block;
+      height: 2rem;
+      width: 20rem;
+      margin: 0 auto;
+      padding-block-start: 0.5rem;
+      text-align: center;
+    }
+
+    // If there is, give it an identifier
+    figcaption::before {
+      content: "Fig. " counter(ct_figures) ": ";
+    }
+  }
+}

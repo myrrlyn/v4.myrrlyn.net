@@ -10,19 +10,22 @@ defmodule HomeWeb.PageController do
     render(conn, :home, layout: false)
   end
 
+  def show_page(conn, %{"path" => ["html-sample"]} = params) do
+    Logger.info("showing html-sample")
+
+    conn
+    |> assign(:template, :plain)
+    |> assign(:classes, ["no-counters"])
+    |> show_page(%{params | "path" => ["html-sample.html"]})
+  end
+
   def show_page(conn, %{"path" => path} = params) do
-    path = Path.join(path)
-
-    path = case Path.extname(path) do
-      "" -> {:ok, "#{path}.md"}
-      ".md" -> {:ok, path}
-      _ -> {:error, "non-Markdown pages are not yet supported"}
-    end
-
-    with {:ok, path} <- path,
-    {:ok, page} <- Home.Page.load_page(path),
-    {:ok, page} <- Home.Page.show(page) do
-      conn |> put_flash(:error, "this site is under construction") |> render(:page, page: page)
+    with {:ok, page} <- Home.Page.load_page(path),
+         {:ok, page} <- Home.Page.show(page) do
+      conn
+      |> put_flash(:error, "this site is under construction")
+      |> assign(:classes, ["theme-ansi" | conn.assigns[:classes] || []])
+      |> render(conn.assigns[:template] || :page, html: page.html, info: page.info)
     else
       {:error, error} ->
         conn
@@ -30,6 +33,5 @@ defmodule HomeWeb.PageController do
         |> put_view(HomeWeb.ErrorHTML)
         |> render("403.html", message: error)
     end
-
   end
 end

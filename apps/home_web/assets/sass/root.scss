@@ -1,3 +1,42 @@
+// Universal rules
+
+@import "https://fonts.googleapis.com/css?family=Inconsolata|Roboto|Roboto+Slab";
+@font-face {
+  font-family: "Iosevka myrrlyn regular";
+  font-variant: common-ligatures;
+  src: url("/assets/fonts/iosevka-myrrlyn/woff2/iosevka-myrrlyn-regular.woff2")
+      format("woff2"),
+    url("/assets/fonts/iosevka-myrrlyn/woff/iosevka-myrrlyn-regular.woff")
+      format("woff"),
+    url("/assets/fonts/iosevka-myrrlyn/ttf/iosevka-myrrlyn-regular.ttf")
+      format("ttf");
+}
+@font-face {
+  font-family: "Iosevka myrrlyn term regular";
+  src: url("/assets/fonts/iosevka-myrrlyn-term/woff2/iosevka-myrrlyn-term-regular.woff2")
+      format("woff2"),
+    url("/assets/fonts/iosevka-myrrlyn-term/woff/iosevka-myrrlyn-term-regular.woff")
+      format("woff"),
+    url("/assets/fonts/iosevka-myrrlyn-term/ttf/iosevka-myrrlyn-term-regular.ttf")
+      format("ttf");
+}
+@font-face {
+  font-family: "Ferro Rosso";
+  src: url("/assets/fonts/FerroRosso.ttf");
+}
+
+:root {
+  --fonts-serif: "Georgia", "Garamond", "Times New Roman", serif;
+  --fonts-sans: "Roboto", sans-serif;
+  --fonts-mono: "Iosevka", "JetBrains Mono", "Inconsolata", "Roboto Mono",
+    "Cascadia Code", "Berkely Mono", "Liberation Mono", "Menlo", "Consolas",
+    monospace;
+}
+
 body {
-	font-size: 16px;
+  font-size: medium;
+  margin: 0;
+  height: 100dvh;
+  width: 100dvw;
+  box-sizing: border-box;
 }

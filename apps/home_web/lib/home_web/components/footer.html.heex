@@ -1,0 +1,6 @@
+<footer id="site-credits" class="screen-only">
+<span>Written in Elixir and Phoenix</span>
+<span>© 2012—<%= Timex.now().year %> Alexander «myrrlyn» Payne </span>
+<span :if={Mix.env() == :dev}>Self-hosted in development</span>
+<span :if={Mix.env() == :prod}>Where am I???</span>
+</footer>

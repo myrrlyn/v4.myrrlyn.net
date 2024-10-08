@@ -1,0 +1,488 @@
+// ANSI Z535
+$ansi-red: #bd2024 !default;
+$ansi-orange: #ff7900 !default;
+$ansi-yellow: #ffe100 !default;
+$ansi-green: #159660 !default;
+$ansi-blue: #004488 !default;
+$ansi-purple: #6f2580 !default;
+
+// ISO 3864
+$iso-red: #9b2423 !default;
+$iso-yellow: #f9a800 !default;
+$iso-green: #237f52 !default;
+$iso-blue: #005387 !default;
+$iso-white: lighten(#ececec, 4%) !default;
+$iso-black: darken(#2b2b2c, 8%) !default;
+
+:root {
+  color-scheme: light dark;
+  --line-height: 1.2rem;
+}
+
+@media (prefers-color-scheme: light) {
+  @import "ansi/light";
+
+  :root {
+    --bg: var(--iso-white);
+    --fg: var(--iso-black);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  @import "ansi/dark";
+
+  :root {
+    --bg: var(--iso-black);
+    --fg: var(--iso-white);
+  }
+}
+
+body,
+.text-serif {
+  font-family: "Roboto Slab";
+}
+
+pre,
+code,
+kbd,
+.text-mono {
+  font-family: "Iosevka myrrlyn regular", var(--fonts-mono);
+}
+
+samp,
+.text-term {
+  font-family: "Iosevka myrrlyn term regular", "Iosevka term", var(--fonts-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  body,
+  main {
+    background-color: black;
+    color: white;
+  }
+}
+
+%heading {
+  margin-block: 1em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @extend %heading;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.875rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+h4 {
+  font-size: 1.625rem;
+}
+
+h5 {
+  font-size: 1.5rem;
+}
+
+h6 {
+  font-size: 1.25rem;
+}
+
+p {
+  line-height: 1.375rem;
+}
+
+blockquote {
+  // &::before {
+  //   content: "“";
+  //   font-size: 2rem;
+  //   display: inline;
+  // }
+  // &::after {
+  //   content: "”";
+  //   font-size: 2rem;
+  // }
+  & > cite {
+    &::before {
+      content: "—";
+    }
+  }
+}
+
+@mixin barberpole($color-bg, $color-fg, $angle: -45deg, $width: 12, $side: "") {
+  border-color: var(--bg);
+  border-style: solid;
+  border#{$side}-width: #{$width}px;
+  // TODO(myrrlyn): Figure out the math to use here. cos(angle) * width of two
+  // stripes? Unsure.
+  border-image: repeating-linear-gradient(
+      $angle,
+      $color-bg,
+      $color-bg #{$width}px,
+      $color-fg #{$width}px,
+      $color-fg calc(#{$width}px * 2)
+    )
+    $width;
+}
+
+%block {
+  border: 0 solid transparent;
+  margin: 1rem 0;
+  padding: 0 1rem;
+}
+
+aside,
+blockquote {
+  @extend %block;
+}
+
+blockquote {
+  border-color: var(--bg);
+  border-style: solid;
+  border-inline-start-width: 12px;
+  border-image: repeating-linear-gradient(
+      -30deg,
+      var(--ansi-red),
+      var(--ansi-red) 12px,
+      var(--iso-white) 12px,
+      var(--iso-white) 18px,
+      var(--ansi-blue) 18px,
+      var(--ansi-blue) 30px,
+      var(--iso-white) 30px,
+      var(--iso-white) 36px
+    )
+    12;
+}
+
+.block-harm,
+.barber-red {
+  @include barberpole(var(--iso-white), var(--ansi-red));
+}
+
+.barber-orange {
+  @include barberpole(var(--iso-white), var(--ansi-orange));
+}
+
+.block-warn {
+  @include barberpole(var(--iso-black), var(--ansi-yellow));
+}
+
+.barber-yellow {
+  @include barberpole(var(--iso-white), var(--ansi-yellow));
+}
+
+.block-safe,
+.barber-green {
+  @include barberpole(var(--iso-white), var(--ansi-green));
+}
+
+.block-info,
+.barber-blue {
+  @include barberpole(var(--iso-white), var(--ansi-blue));
+}
+
+.barber-purple {
+  @include barberpole(var(--iso-white), var(--ansi-purple));
+}
+
+dl {
+  counter-reset: defns;
+  dt {
+    font-style: italic;
+    counter-increment: defns;
+    &::before {
+      content: counter(defns) ". ";
+      font-style: normal;
+    }
+    &::after {
+      content: ":";
+    }
+    &:not(:first-child) {
+      margin-block-start: 1rem;
+    }
+  }
+}
+
+ol {
+  counter-reset: oli;
+  list-style-type: none;
+  padding-inline-start: 2rem;
+  & > li {
+    counter-increment: oli;
+    &::before {
+      content: counters(oli, ".") ". ";
+      position: relative;
+    }
+  }
+}
+
+$border-common: 2px solid var(--fg);
+$border-ul-li: $border-common;
+
+%ul-li-vertical {
+  border-inline-start: $border-ul-li;
+}
+
+ul {
+  padding-inline-start: 0;
+  list-style-type: none;
+  margin: 0;
+  margin-inline-start: 1rem;
+  line-height: var(--line-height);
+  ul {
+    margin-inline-start: 0;
+  }
+  li {
+    position: relative;
+    padding-inline-start: 2ch;
+
+    // Draw a vertical bar on the left edge
+    @extend %ul-li-vertical;
+
+    --midway: calc(var(--line-height) / 2);
+
+    // Draw a horizontal bar between the vertical and the content
+    &::before {
+      position: absolute;
+      display: block;
+      top: var(--midway);
+      left: 0;
+      content: "";
+      width: 1.5ch;
+      border-block-start: $border-ul-li;
+    }
+
+    // On the last element, only draw up to the group, but *not* down the
+    // contents.
+    &:last-child {
+      border-inline-start-color: transparent;
+      &::before {
+        width: calc(1.5ch + 2px);
+        left: -2px;
+      }
+      &::after {
+        position: absolute;
+        top: 0;
+        left: -2px;
+        display: block;
+        content: "";
+        height: var(--midway);
+        @extend %ul-li-vertical;
+      }
+    }
+
+    // If the element is the only child of the list, disable the vertical bar
+    // entirely.
+    &:only-child::after {
+      display: none !important;
+    }
+  }
+}
+
+:not(ul > li) > ul {
+  margin: 1rem;
+
+  // On the first element of a top-level list, the vertical bar begins at the
+  // half-line and *descends* the rest of the element.
+  > li:first-child {
+    border-inline-start-color: transparent;
+    &::before {
+      width: calc(1.5ch + 2px);
+      left: -2px;
+    }
+    &::after {
+      position: absolute;
+      left: -2px;
+      display: block;
+      content: "";
+      top: var(--midway);
+      height: calc(100% - var(--midway));
+      @extend %ul-li-vertical;
+    }
+  }
+}
+
+table {
+  border-collapse: collapse;
+  &,
+  thead,
+  tfoot {
+    border: 2px solid var(--fg);
+  }
+  th,
+  td {
+    border: 1px solid var(--fg);
+    padding: 0.25rem;
+  }
+  > caption {
+    margin-block-end: 0.5rem;
+  }
+}
+
+kbd {
+  border-width: 1px;
+  border-style: outset;
+  border-color: var(--fg);
+  border-radius: 6px;
+  box-shadow: 2px 2px var(--fg);
+  padding: 2px 4px;
+
+  + kbd {
+    margin-inline-start: 6px;
+  }
+}
+
+ins,
+del,
+mark {
+  --color-mark: var(--fg);
+  --color-fill: #808080;
+  text-decoration: none;
+  padding: 0 0.25rem;
+  border: var(--color-mark) solid 2px;
+  background-color: var(--color-fill);
+}
+
+ins {
+  --color-mark: var(--ansi-green);
+  --color-fill: #{transparentize($ansi-green, 0.25)};
+}
+
+del {
+  --color-mark: var(--ansi-red);
+  --color-fill: #{transparentize($ansi-red, 0.25)};
+}
+
+mark {
+  --color-mark: var(--ansi-yellow);
+  --color-fill: #{transparentize($ansi-yellow, 0.25)};
+}
+
+main img {
+  min-width: 20rem;
+  max-width: 50%;
+  margin-inline: auto;
+  display: block;
+}
+
+figure {
+  border: $border-common;
+  border-radius: 1rem;
+  padding: 1rem;
+
+  figcaption {
+    text-align: center;
+    padding-block: 0.5rem;
+
+    &:first-child {
+      padding-block-start: 0;
+    }
+    &:last-child {
+      padding-block-end: 0;
+    }
+  }
+}
+
+audio,
+video {
+  margin: 0 auto;
+  display: block;
+}
+
+// meter, progress
+//
+// come back to these
+
+iframe {
+  @extend .barber-orange;
+}
+
+embed,
+object {
+  border: $border-common;
+}
+
+%form-border {
+  border: $border-common;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+form {
+  @extend %form-border;
+  border-radius: 1rem;
+
+  input, button {
+    --color-border: var(--fg);
+    border: 2px outset var(--color-border);
+    padding: 0.25rem;
+    margin: 0.25rem;
+
+    &:active {
+      border-style: inset;
+    }
+
+    &:focus {
+      border-color: var(--ansi-blue);
+    }
+
+    &[type="submit"] {
+      --color-border: var(--ansi-green);
+    }
+
+    &[type="reset"] {
+      --color-border: var(--ansi-red);
+    }
+
+    &[type="button"] {
+      --color-border: var(--ansi-purple);
+    }
+  }
+
+  label {
+    @extend .text-mono;
+    font-variant: small-caps;
+    padding: 0 0.25rem;
+  }
+
+  button, input[type="submit"], input[type="button"], input[type="reset"], input[disabled] {
+    @extend .text-mono;
+    padding-inline: 0.5rem;
+    border-radius: 0.5rem;
+
+    box-shadow: 2px 2px var(--color-border);
+
+    &:active {
+      box-shadow: -2px -2px var(--color-border);
+    }
+  }
+
+  :is(button, input):disabled {
+    --color-border: #808080;
+  }
+}
+
+fieldset {
+  @extend %form-border;
+
+  legend {
+    @extend .text-mono;
+    text-transform: uppercase;
+  }
+}
+
+textarea {
+  @extend %form-border;
+  @extend .text-mono;
+}

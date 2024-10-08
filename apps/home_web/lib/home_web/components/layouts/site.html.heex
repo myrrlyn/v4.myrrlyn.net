@@ -1,13 +1,17 @@
 <header id="banner" role="banner" class="screen-only"></header>
 
 <div id="content">
-<main>
-<.flash_group flash={@flash} />
+<main class="panel-text">
+<%!-- <.flash_group flash={@flash} /> --%>
 
 <%= @inner_content %>
 </main>
-<aside id="about">
+<aside id="about" class="panel-text screen-only">
+<h2>Sidebar</h2>
+<p>Hello I am the infobar</p>
+<p>This site is under construction! Go to <a href="//myrrlyn.net/">the one that
+isn't at my house</a> instead.</p>
 </aside>
 </div>
 
-<footer id="site-credits" class="screen-only"></footer>
+<.footer />

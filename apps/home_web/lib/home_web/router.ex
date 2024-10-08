@@ -37,7 +37,6 @@ defmodule HomeWeb.Router do
     scope "/", HomeWeb do
       pipe_through :browser
 
-      get "/", PageController, :home
       get "/*path", PageController, :show_page
     end
   end

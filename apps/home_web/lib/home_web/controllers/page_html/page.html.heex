@@ -1,6 +1,8 @@
 <article>
-<h1 class="title"><%= @page.orig.meta.title %></h1>
-<p :if={@page.orig.meta.summary}><%= @page.orig.meta.summary %></p>
-<%= @page.html |> raw() %>
+<% if @info do %>
+	<h1 class="title"><%= @info.title %></h1>
+	<p :if={@info.summary}><%= @info.summary %></p>
+<% end %>
+	<%= @html |> raw() %>
 </article>
 <div class="debug-grid"></div>

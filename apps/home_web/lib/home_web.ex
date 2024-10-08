@@ -84,6 +84,8 @@ defmodule HomeWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import HomeWeb.CoreComponents
+      # Local fragments
+      import HomeWeb.Components
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
