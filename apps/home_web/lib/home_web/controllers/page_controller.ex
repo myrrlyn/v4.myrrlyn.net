@@ -3,6 +3,7 @@ defmodule HomeWeb.PageController do
 
   require Logger
   require OK
+  use OK.Pipe
 
   def home(conn, _params) do
     # The home page is often custom made,
@@ -20,14 +21,19 @@ defmodule HomeWeb.PageController do
   end
 
   def show_page(conn, %{"path" => path} = params) do
-    with {:ok, page} <- Home.Page.load_page(path),
-         {:ok, page} <- Home.Page.show(page) do
+    OK.try do
+      page <- path |> Home.Page.load_page() ~>> Home.Page.show()
+    after
       conn
       |> put_flash(:error, "this site is under construction")
       |> assign(:classes, ["theme-ansi" | conn.assigns[:classes] || []])
-      |> render(conn.assigns[:template] || :page, html: page.html, info: page.info)
-    else
-      {:error, error} ->
+      |> render(conn.assigns[:template] || :page,
+        html: page.html,
+        info: page.info,
+        tocs: page.tocs
+      )
+    rescue
+      error ->
         conn
         |> put_status(403)
         |> put_view(HomeWeb.ErrorHTML)

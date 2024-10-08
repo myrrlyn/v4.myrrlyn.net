@@ -1,6 +1,8 @@
 defmodule Wyz.File do
   @moduledoc """
   Represents a stored file, retaining its path and filesystem information.
+
+  This is intended to be used as a carrier for _any_ type of file.
   """
 
   require OK

@@ -1,0 +1,9 @@
+<ol :if={@toc != []}>
+  <li :for={%Wyz.Markdown.Toc{node: {_, _, inner, _}, ident: ident, children: children} <- @toc}>
+    <.link href={"#" <> ident}><%= inner |> Phoenix.HTML.raw() %></.link>
+    <%= if children != [] do %>
+      <.toc toc={children} />
+    <% else %>
+    <% end %>
+  </li>
+</ol>

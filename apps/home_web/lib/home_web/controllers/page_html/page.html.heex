@@ -1,8 +1,15 @@
 <article>
-<% if @info do %>
-	<h1 class="title"><%= @info.title %></h1>
-	<p :if={@info.summary}><%= @info.summary %></p>
-<% end %>
-	<%= @html |> raw() %>
+  <%= if @info do %>
+    <header>
+      <h1 class="title"><%= @info.title %></h1>
+      <h2 :if={@info.subtitle} class="subtitle"><%= @info.subtitle %></h2>
+      <p :if={@info.summary}><%= @info.summary %></p>
+      <nav :if={@tocs != []} aria-label="Table of Contents">
+        <.toc toc={@tocs} />
+      </nav>
+    </header>
+    <hr />
+  <% end %>
+  <%= @html |> raw() %>
 </article>
-<div class="debug-grid"></div>
+<%!-- <div class="debug-grid"></div> --%>

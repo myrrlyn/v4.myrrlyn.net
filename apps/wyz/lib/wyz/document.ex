@@ -2,6 +2,8 @@ defmodule Wyz.Document do
   @moduledoc """
   A displayable document, consisting of plaintext (in Markdown) and optionally
   structured metadata.
+
+  This is currently intended only to be used with Markdown text.
   """
 
   require Logger
@@ -13,7 +15,7 @@ defmodule Wyz.Document do
   @type t :: %__MODULE__{
           file: Wyz.File.t() | :literal | nil,
           text: String.t() | {String.t(), String.t()} | nil,
-          meta: %{(String.t() | atom()) => any()}
+          meta: %{String.t() => any()}
         }
 
   @doc """
@@ -77,11 +79,11 @@ defmodule Wyz.Document do
     end
   end
 
+  @doc """
+  Parses the frontmatter of a document as YAML into a simple map.
+  """
   @spec parse_frontmatter_yaml(__MODULE__.t()) :: {:ok, __MODULE__.t()} | {:error, any()}
   def parse_frontmatter_yaml(this)
-
-  def parse_frontmatter_yaml(%__MODULE__{text: text} = this) when is_binary(text),
-    do: this |> __MODULE__.split_frontmatter() ~>> __MODULE__.parse_frontmatter_yaml()
 
   def parse_frontmatter_yaml(%__MODULE__{text: {head, _}} = this) when is_binary(head) do
     OK.for do
@@ -90,6 +92,9 @@ defmodule Wyz.Document do
       %__MODULE__{this | meta: yaml}
     end
   end
+
+  def parse_frontmatter_yaml(%__MODULE__{text: text} = this) when is_binary(text),
+    do: this |> __MODULE__.split_frontmatter() ~>> __MODULE__.parse_frontmatter_yaml()
 
   def parse_frontmatter_yaml(_), do: {:error, :invalid_contents}
 end
